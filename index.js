@@ -48,21 +48,25 @@ const replace_file = local_path => {
 
   return fs.readFile(path.join(source, local_path), 'utf8')
     .then(data => {
-      const res = data.match(/__(\w+)__/g).filter(x => !x.startsWith('__BUILD'))
+      const res = [
+        ...data.match(/__(\w+)__/g).filter(x => !x.startsWith('__BUILD')),
+        ...data.match(/__BUILD__(\w+)__/g)
+      ]
 
       let output = data
       if (!res) {
         return console.log('no tokens in file', local_path)
       }
 
+      const variables = res.map(x => x.slice(2, x.length - 2))
+
       if (mode === 'scan') {
-        scannedValues.push(...res.map(x => x.split('__').join('')))
+        scannedValues.push(...variables)
         return
       }
 
       if (mode === 'generate') {
-        res.map(x => {
-          const variable = x.split('__').join('')
+        variables.map(x => {
           const replacement = values[variable]
 
           if (!replacement) {
