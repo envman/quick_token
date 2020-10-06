@@ -1,19 +1,24 @@
 #!/usr/bin/env node
+
 const fs = require('fs-extra')
 const path = require('path')
+
 const [mode, source] = process.argv.slice(2)
 const target_path = path.join(source, 'dist')
+
 fs.mkdirpSync(target_path)
-console.log(`Source dir: ${source}`)
+
 const values = {}
-if (mode === 'generate') {
+
+if (fs.existsSync(path.join(target_path, 'values'))) {
   fs.readFileSync(path.join(target_path, 'values'), 'utf-8')
-  .split('\r\n')
-  .map(val => {
-    const [name, value] = val.split('=')
-    values[name] = value
-  })
+    .split('\r\n')
+    .map(val => {
+      const [name, value] = val.split('=')
+      values[name] = value
+    })
 }
+
 const replace = folder => {
   return fs.readdir(path.join(source, folder))
     .then(files => {
@@ -29,15 +34,17 @@ const replace = folder => {
     })
 }
 const scannedValues = []
+
 const replace_file = local_path => {
   console.log('File: ', local_path)
   const bits = local_path.split('\\')
   bits.pop()
   const folder = path.join(target_path, bits.join('\\'))
+
   return fs.readFile(path.join(source, local_path), 'utf8')
     .then(data => {
       const res = data.match(/__(\w+)__/g)
-      console.log('Matched: ', res)
+      // console.log('Matched: ', res)
       let output = data
       if (!res) {
         return console.log('no tokens in file', local_path)
@@ -62,18 +69,24 @@ const replace_file = local_path => {
       }
     })
 }
+
 replace(source)
   .then(_ => {
     if (mode === 'scan') {
       const output = scannedValues
         .filter((x, i) => scannedValues.indexOf(x) === i)
         .sort((a, b) => a.localeCompare(b))
-        .map(x => `${x}=`).join('\r\n')
+        .map(x => {
+          const value = values[x] || ''
+          if (!value) console.log(`Value required ${x}`)
+
+          return `${x}=${value}`
+        }).join('\r\n')
       
       return fs.writeFile(path.join(target_path, 'values'), output)
     }
   })
   .then(_ => {
-    console.log('done')
+    console.log(`${mode} completed`)
   })
   .catch(console.error)
