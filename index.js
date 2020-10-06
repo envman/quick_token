@@ -67,12 +67,12 @@ const replace_file = local_path => {
 
       if (mode === 'generate') {
         variables.map(x => {
-          const replacement = values[variable]
+          const replacement = values[x]
 
           if (!replacement) {
-            console.error(`Could not find value for ${variable}`)
+            console.error(`Could not find value for ${x}`)
           } else {
-            output = output.split(x).join(replacement)
+            output = output.split(`__${x}__`).join(replacement)
           }
         })
 
