@@ -49,8 +49,8 @@ const replace_file = local_path => {
   return fs.readFile(path.join(source, local_path), 'utf8')
     .then(data => {
       const res = [
-        ...data.match(/__(\w+)__/g).filter(x => !x.startsWith('__BUILD')),
-        ...data.match(/__BUILD__(\w+)__/g)
+        ...(data.match(/__(\w+)__/g) || []).filter(x => !x.startsWith('__BUILD')),
+        ...(data.match(/__BUILD__(\w+)__/g) || [])
       ]
 
       let output = data
