@@ -65,7 +65,11 @@ const replace_file = local_path => {
 replace(source)
   .then(_ => {
     if (mode === 'scan') {
-      const output = scannedValues.filter((x, i) => scannedValues.indexOf(x) === i).map(x => `${x}=`).join('\r\n')
+      const output = scannedValues
+        .filter((x, i) => scannedValues.indexOf(x) === i)
+        .sort((a, b) => a.localeCompare(b))
+        .map(x => `${x}=`).join('\r\n')
+      
       return fs.writeFile(path.join(target_path, 'values'), output)
     }
   })
